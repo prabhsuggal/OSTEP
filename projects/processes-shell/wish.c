@@ -15,6 +15,7 @@ char error_message[30] = "An error has occurred\n";
 char **path, **args, *filePath;
 int outFp = 1, numArgs;
 
+// Removing trailing/leading spaces from a string 
 char* RemoveSpaces(char* str){
     char *end;
 
@@ -34,6 +35,7 @@ char* RemoveSpaces(char* str){
     return str;
 }
 
+// Check If the output will be redirected toa file
 void checkRedirect(char* str){
     char *arg1, *arg2;
     int i = 0;
@@ -44,7 +46,6 @@ void checkRedirect(char* str){
     if(str != NULL){
         while((arg1 = strsep(&str," ")) != NULL){
             arg2 = RemoveSpaces(arg1);
-            //printf("cats %s f %d e %s\n",arg2,i,str);
             if((i > 0) && (strlen(arg2) > 0)){
                 write(STDERR_FILENO, error_message, strlen(error_message)); 
                 exit(1);
@@ -66,6 +67,7 @@ void checkRedirect(char* str){
     return;
 }
 
+//Separate all arguments and store in an array
 void PrepArgs(char* buffer){
     int i=0;
     char *arg1, *arg2;
@@ -74,7 +76,6 @@ void PrepArgs(char* buffer){
         return;
 
     buffer = strsep(&buffer,">");
-    //printf("%s\n", buffer);
 
     while((arg1 = strsep(&buffer," ")) != NULL){
         arg2 = RemoveSpaces(arg1); 
@@ -91,17 +92,16 @@ void PrepArgs(char* buffer){
     return;
 }
 
+// function for built-in command "path"
 void changePath(){
-    //printf("path");
     for(int x=1; x < numArgs; x++){
         path[x-1] = strdup(args[x]);
-        //printf(": %s",args[x]);
     }
-    //printf("\n");
     path[numArgs-1] = NULL;
     return;
 }
 
+// function for built-in command "cd"
 void changeDir(){
     if(numArgs != 2){
         write(STDERR_FILENO, error_message, strlen(error_message)); 
@@ -109,14 +109,12 @@ void changeDir(){
     }
     if(chdir(args[1])==-1){
         write(STDERR_FILENO, error_message, strlen(error_message)); 
-       // printf("%s: Could not change Dir - %s\n",args[0],args[1]);
         return;
     };
-    //char s[100];
-    //printf("%s\n",getcwd(s,100));
     return;
 }
 
+// Running the command in the child thread
 void operate(){
 
     int i=0;
@@ -151,11 +149,6 @@ void operate(){
         i++;
     }
 
-    //printf("%s santa\n",args[0]);
-
-    //for(int q=0;args[q]!=NULL;q++)
-    //printf("%s cats\n",args[q]);
-
     dup2(outFp, 1);
     if(execv(args[0],args)==-1){
         write(STDERR_FILENO, error_message, strlen(error_message)); 
@@ -172,13 +165,15 @@ void operate(){
 
 }
 
+//bring the whole input string and check for parallel commands, and getting rid
+//of newline character included in the getline(). fork() is called to break it
+//into parent and child thread
 void RunCmds(char *buffer){
     char *arg, *str;
     
    buffer[strlen(buffer)-1] = '\0'; 
 
     while((arg = strsep(&buffer,"&")) != NULL){
-      //  printf("%s arg\n",arg);
         str = strdup(arg);
         PrepArgs(arg);
         if(args[0]!=NULL){
@@ -204,8 +199,12 @@ void RunCmds(char *buffer){
     }
     while(wait(NULL)>0);
 
+    free(str);
+    free(arg);
+
 }
 
+//in case only ./wish is used at the command line
 void interactive(){
 
     char *buffer;
@@ -222,17 +221,14 @@ void interactive(){
             exit(0);
         }
         RunCmds(buffer);
-        //printf("%zu,%s", len, buffer);
-
     }
 
     free(buffer);
     return;
 }
 
+//when a command file is used as arguments to ./wish
 void batch(char* file){
-    //printf("%s\n",file);
-
     FILE *fp = fopen(file,"r");
     if(!fp){
         write(STDERR_FILENO, error_message, strlen(error_message)); 
@@ -245,8 +241,6 @@ void batch(char* file){
 
     len = getline(&buffer, &bufsize, fp);
     while(len > 0){
-    //    printf("%d,%s", len, buffer);
-        
         if(strcmp(buffer,EXIT) == 0){
             exit(0);
         }
@@ -277,7 +271,6 @@ int main(int argc, char* argv[]){
         write(STDERR_FILENO, error_message, strlen(error_message)); 
         exit(1);
     }
-
-    // free();
+    
     return 0;
 }
