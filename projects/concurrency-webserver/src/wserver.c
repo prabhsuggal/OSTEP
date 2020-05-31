@@ -5,11 +5,8 @@
 
 char default_root[] = ".";
 char default_schedalg[] = "FIFO";
-<<<<<<< HEAD
 int *fix_buffer;
 int buffers, fill = 0, use = 0;
-=======
->>>>>>> f6baae5aed39df2d4913730ba6219ecc8780bee5
 
 void put(int fd){
 	fix_buffer[fill] = fd;
@@ -33,12 +30,8 @@ int main(int argc, char *argv[]) {
     char *root_dir = default_root;
 	char *schedalg = default_schedalg;
     int port = 10000;
-<<<<<<< HEAD
 	int threads = 1;
 	buffers = 1;
-=======
-	int threads = 1, buffers = 1;
->>>>>>> f6baae5aed39df2d4913730ba6219ecc8780bee5
     
     while ((c = getopt(argc, argv, "d:p:")) != -1)
 	switch (c) {
