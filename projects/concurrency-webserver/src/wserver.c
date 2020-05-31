@@ -3,6 +3,7 @@
 #include "io_helper.h"
 
 char default_root[] = ".";
+char default_schedalg[] = "FIFO";
 
 //
 // ./wserver [-d <basedir>] [-p <portnum>] 
@@ -10,7 +11,9 @@ char default_root[] = ".";
 int main(int argc, char *argv[]) {
     int c;
     char *root_dir = default_root;
+	char *schedalg = default_schedalg;
     int port = 10000;
+	int threads = 1, buffers = 1;
     
     while ((c = getopt(argc, argv, "d:p:")) != -1)
 	switch (c) {
@@ -20,6 +23,20 @@ int main(int argc, char *argv[]) {
 	case 'p':
 	    port = atoi(optarg);
 	    break;
+    case 't':
+		threads = atoi(optarg);
+		if(threads < 1)
+			threads = 1;
+		break;
+	case 'b':
+		buffers = atoi(optarg);
+		if(buffers < 0){
+			buffers = 1;
+		}
+		break;
+	case 's':
+		schedalg = optarg;
+		break;
 	default:
 	    fprintf(stderr, "usage: wserver [-d basedir] [-p port]\n");
 	    exit(1);
