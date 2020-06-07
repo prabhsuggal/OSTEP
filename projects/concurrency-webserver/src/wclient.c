@@ -20,9 +20,16 @@
 //
 
 #include "io_helper.h"
+#include "mythreads.h"
+#include "common.h"
+#include "common_threads.h"
 
 #define MAXBUF (8192)
 
+typedef struct my_arg{
+    char *host, *filename;
+    int port;
+}client;
 //
 // Send an HTTP request for the specified file 
 //
@@ -66,19 +73,10 @@ void client_print(int fd) {
     }
 }
 
-int main(int argc, char *argv[]) {
-    char *host, *filename;
-    int port;
-    int clientfd;
-    
-    if (argc != 4) {
-	fprintf(stderr, "Usage: %s <host> <port> <filename>\n", argv[0]);
-	exit(1);
-    }
-    
-    host = argv[1];
-    port = atoi(argv[2]);
-    filename = argv[3];
+void *conn(void * args){
+    client* arg = (client*)args;
+    char *host = arg->host, *filename = arg->filename;
+    int port = arg->port, clientfd;
     
     /* Open a single connection to the specified host and port */
     clientfd = open_client_fd_or_die(host, port);
@@ -87,6 +85,38 @@ int main(int argc, char *argv[]) {
     client_print(clientfd);
     
     close_or_die(clientfd);
+    return NULL;
+
+}
+
+int main(int argc, char *argv[]) {
+    char *host, *filename;
+    int port;
+    int threads=1;
+    
+    if (argc < 4 || argc > 5) {
+	fprintf(stderr, "Usage: %s <host> <port> <filename> <processes>(default:1)\n", argv[0]);
+	exit(1);
+    }
+    
+    host = argv[1];
+    port = atoi(argv[2]);
+    filename = argv[3];
+    if(argc == 5)
+        threads = atoi(argv[4]); 
+
+    client x;
+    x.host = host;
+    x.port = port;
+    x.filename = filename;
+    pthread_t* p = (pthread_t*)Malloc(threads*sizeof(pthread_t));
+	for(int i=0; i < threads; i++){
+		Pthread_create(&p[i], NULL, conn, &x);
+	}
+
+	for(int i=0; i < threads; i++){
+		Pthread_join(p[i], NULL);
+	}
     
     exit(0);
 }
