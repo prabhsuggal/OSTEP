@@ -3,7 +3,7 @@
 	"tasks": [
 		{
 			"type": "shell",
-			"label": "build",
+			"label": "build OSTEP (client/server)",
 			"command": "cd ${fileDirname}; make",
 			"group": {
 				"kind": "build",

@@ -142,13 +142,18 @@ void request_serve_static(int fd, char *filename, int filesize) {
 }
 
 // handle a request
-void request_handle(int fd) {
+void request_handle(int fd, char* buf) {
     int is_static;
+    uint8_t free_mem = 0;
     struct stat sbuf;
-    char buf[MAXBUF], method[MAXBUF], uri[MAXBUF], version[MAXBUF];
+    char method[MAXBUF], uri[MAXBUF], version[MAXBUF];
     char filename[MAXBUF], cgiargs[MAXBUF];
-    
-    readline_or_die(fd, buf, MAXBUF);
+    if(buf == NULL){
+        buf = (char*)malloc(sizeof(char)*MAXBUF);
+        assert(buf != NULL);
+        free_mem = 1;
+        readline_or_die(fd, buf, MAXBUF);
+    }
     sscanf(buf, "%s %s %s", method, uri, version);
     printf("method:%s uri:%s version:%s\n", method, uri, version);
     
@@ -177,4 +182,8 @@ void request_handle(int fd) {
 	}
 	request_serve_dynamic(fd, filename, cgiargs);
     }
+
+    if(free_mem)
+        free(buf);
+
 }

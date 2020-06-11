@@ -91,6 +91,7 @@ void *conn(void * args){
 
 int main(int argc, char *argv[]) {
     char *host, *filename;
+    char** fileList = (char**)Malloc(12*sizeof(char*));
     int port;
     int threads=1;
     
@@ -103,17 +104,24 @@ int main(int argc, char *argv[]) {
     port = atoi(argv[2]);
     filename = argv[3];
     if(argc == 5)
-        threads = atoi(argv[4]); 
-
+        threads = atoi(argv[4]);
+    FILE* fp = fopen(filename, "r");
+    for(int it = 0;; it++){
+        fileList[it] = (char*)Malloc(20*sizeof(char));
+        if(fscanf(fp, "%s", fileList[it]) == EOF){
+            break;
+        }
+    }
+    srand(time(0));
     client x;
-    x.host = host;
-    x.port = port;
-    x.filename = filename;
     pthread_t* p = (pthread_t*)Malloc(threads*sizeof(pthread_t));
-	for(int i=0; i < threads; i++){
+	for(long int i=0,it; i < threads; i++){
+        x.host = host;
+        x.port = port;
+        it = rand();
+        x.filename = fileList[(it*(long int)12)/RAND_MAX];
 		Pthread_create(&p[i], NULL, conn, &x);
 	}
-
 	for(int i=0; i < threads; i++){
 		Pthread_join(p[i], NULL);
 	}
