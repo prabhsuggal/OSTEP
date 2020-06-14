@@ -17,16 +17,20 @@ else:
 
 print("value of size:", size)
 
+prev_s = '/0'
 for i in range(size):
-    s = add('a',random.randrange(0,26,1))
-    count = random.randrange(50,100,1)
-    file_ans.write(str(count) + " ")
-    file_ans.write(str(hex(count)) + " ")
-    file_ans.write(s + '\n')
+    s = add('a',random.randrange(0,26))
+    if(s == prev_s):
+        continue
+    else:
+        prev_s = s
+    count = random.randrange(1,1001)
+    file_ans.write(str(count)+s)
+    #file_ans.write(str(hex(count)) + " ")
     for j in range(count):
         file.write(s)
 file.close()
 file_ans.close()
 
-print(open("file.txt").read())
-print(open("file_ans.txt").read())
+#print(open("file.txt").read())
+#print(open("file_ans.txt").read())

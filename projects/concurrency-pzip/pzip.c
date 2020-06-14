@@ -21,15 +21,42 @@ typedef struct zip_t{
     int size;
 }zip;
 
-zip *gzip;
-char *fileptr, zip_res;
-int file_piece, idx, res_size;
+zip *gzip, zip_res = { NULL, 0};
+
+char *fileptr;
+int file_piece, idx;
 struct stat sbuf;
-bool map_done=false, zip_done=false;
-pthread_cond_t mapped, zipped;
-pthread_mutex_t mutex, zip_t;
+bool map_done=false;
+pthread_cond_t mapped;
+pthread_mutex_t mutex;
 
 sem_t increment,tlock;
+
+void concat(zip *zip_res, zip cat){
+    if(zip_res->size == 0){
+        memcpy(zip_res->res, cat.res, cat.size);
+        zip_res->size = cat.size; 
+    }
+    else{
+        int tmp1, tmp2, tmp;
+        char str1, str2;
+        memcpy(&tmp1, zip_res->res+zip_res->size-5, 4);
+        memcpy(&tmp2, cat.res, 4);
+        str1 = zip_res->res[zip_res->size-1];
+        str2 = cat.res[4];
+        if(str1 == str2){
+            tmp = tmp1+tmp2;
+            memcpy(zip_res->res + zip_res->size-5, &tmp, 4);
+            zip_res->res[zip_res->size-1] = str1;
+            memcpy(zip_res->res + zip_res->size, cat.res+5, cat.size-5);
+            zip_res->size += (cat.size - 5);
+        }
+        else{
+            memcpy(zip_res->res + zip_res->size, cat.res, cat.size);
+            zip_res->size += cat.size;
+        }
+    }
+}
 
 zip wzip(char *fptr, int size){
     //printf("String sent to thread : %ld is %.*s\n", gettid(), size, fptr);
@@ -96,12 +123,12 @@ void* single_wzip(void *arg)
         }  
         Sem_post(&increment);
 
-        printf("String sent to thread : %ld with idx %d is \n %.*s\n", gettid(), loc_idx, size, file_ptr);
+        //printf("String sent to thread : %ld with idx %d is \n %.*s\n", gettid(), loc_idx, size, file_ptr);
 
         gzip[loc_idx] = wzip(file_ptr, size);
 
 
-        int tmp=0;
+        /* int tmp=0;
         Sem_wait(&tlock);
         printf("zip for idx %d thread %ld\n",loc_idx, gettid());
         for(int y=0; y < gzip[loc_idx].size; y+=5){
@@ -109,16 +136,8 @@ void* single_wzip(void *arg)
             printf("%d%c",tmp,gzip[loc_idx].res[y+4]);
         }
         printf("\n");
-        Sem_post(&tlock);
+        Sem_post(&tlock); */
 
-
-
-        if(sbuf.st_size == (loc_idx)*file_piece + size){
-            Mutex_lock(&zip_t);
-            Cond_signal(&zipped);
-            zip_done = true;
-            Mutex_unlock(&zip_t);
-        }
     }
     return NULL;
 }
@@ -127,17 +146,14 @@ int main(int argc, char* argv[])
 {   
     int opt, num_threads, tot_parts;
     int mul_t = 1, cores = get_nprocs_conf();
-    int fd, pieces = 2, num_files=0;
+    int fd, pieces = 2, num_files=0, zip_res_size = 0;
 
     Sem_init(&increment, 1);
     Sem_init(&tlock,1);
     Mutex_init(&mutex);
-    Mutex_init(&zip_t);
     Cond_init(&mapped);
-    Cond_init(&zipped);
 
-    while((opt = getopt(argc, argv, ":m:p:")) != -1){
-
+    while((opt = getopt(argc, argv, "m:p:")) != -1){
         switch (opt)
         {
         case 'm':
@@ -145,7 +161,7 @@ int main(int argc, char* argv[])
             break;
         case 'p':
             pieces = atoi(optarg);
-        case ':':
+            break;
         default :
             fprintf(stderr, "Usage: ./pzip [-m multiple] [-p avg_file_parts_per_thread] file1 [file2]...\n");
             exit(1);
@@ -157,15 +173,17 @@ int main(int argc, char* argv[])
     }
     
     num_files = argc - optind;
-    num_threads = 2;
+    num_threads = cores*mul_t;
     tot_parts = num_threads*pieces;
 	pthread_t *thread_t = (pthread_t*)Malloc(num_threads*sizeof(pthread_t));
     gzip = (zip*)Malloc(sizeof(zip)*tot_parts);
-    printf("will be running %d threads in %d cores CPU %d\n", num_threads, cores, mul_t);
+    fprintf(stderr, "will be running %d threads in %d cores CPU\n", num_threads, cores);
 
     for(int i=0; i < num_threads; i++){
         Pthread_create(&thread_t[i], NULL, single_wzip, NULL);
     }
+    double stime=0,etime=0;
+    stime = GetTime();
     for(;optind<argc;optind++){
         fd = Open(argv[optind], O_RDONLY);
         Fstat(fd, &sbuf);
@@ -180,31 +198,36 @@ int main(int argc, char* argv[])
         Pthread_cond_broadcast(&mapped);
         map_done = true;
         Mutex_unlock(&mutex);
-
-        Mutex_lock(&zip_t);
-        while(!zip_done)
-            Pthread_cond_wait(&zipped, &zip_t);
-        Mutex_unlock(&zip_t);
-        munmap(fileptr, sbuf.st_size);
     }
 
     for(int i=0;i < num_threads; i++){
         Pthread_join(thread_t[i], NULL);
     }
 
-    for(int i=0; i < num_threads; i++){
-        
+    for(int i = 0; i < num_files; i++){
+        munmap(fileptr, sbuf.st_size);
     }
 
+    for(int i = 0;i < tot_parts; i++){
+        zip_res_size+=gzip[i].size;
+    }
+    zip_res.res = (char*)Malloc(sizeof(char)*zip_res_size);
 
-    for(int i=0;i < num_threads*pieces; i++){
-        int tmp;
-        for(int y=0; y < gzip[i].size; y+=5){
-            memcpy(&tmp, gzip[i].res + y, 4);
-            printf("%d%c",tmp,gzip[i].res[y+4]);
+    for(int i=0;i < tot_parts; i++){
+        concat(&zip_res, gzip[i]);
+        /* for(int y=0; y < gzip[i].size; y+=5){
+            printf("%d%c",*(int*)(gzip[i].res + y),gzip[i].res[y+4]);
         }
-        printf("\n");
+        printf("\n"); */
     }
+
+    for(int i=0; i<zip_res.size; i+=5){
+        printf("%d%c",*(int*)(zip_res.res + i),zip_res.res[i+4]);
+    }    
+
+    etime = GetTime();
+
+    fprintf(stderr, " Time taken by pzip is %f sec\n", etime-stime);
 
     return 0;
 }
