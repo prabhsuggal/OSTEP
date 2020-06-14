@@ -10,6 +10,9 @@
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
             "args": [
+                "file.txt",
+                "file.txt",
+                "file.txt",
                 "file.txt"
             ],
             "stopAtEntry": true,
