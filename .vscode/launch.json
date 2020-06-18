@@ -8,14 +8,11 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "program": "${fileDirname}/main",
             "args": [
-                "file.txt",
-                "file.txt",
-                "file.txt",
-                "file.txt"
+                "test"
             ],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,
@@ -27,7 +24,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "C/C++: gcc-7 build active file"
+            "preLaunchTask": "build makefile"
         },
 
         {

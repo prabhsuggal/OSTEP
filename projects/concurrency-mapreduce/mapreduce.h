@@ -1,6 +1,8 @@
 #ifndef __mapreduce_h__
 #define __mapreduce_h__
 
+//Function for getting time
+double GetTime(void);
 // Different function pointer types used by MR
 typedef char *(*Getter)(char *key, int partition_number);
 typedef void (*Mapper)(char *file_name);
@@ -16,5 +18,7 @@ void MR_Run(int argc, char *argv[],
 	    Mapper map, int num_mappers, 
 	    Reducer reduce, int num_reducers, 
 	    Partitioner partition);
+
+void print(const char* calling_funcion);
 
 #endif // __mapreduce_h__

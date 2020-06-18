@@ -10,6 +10,13 @@
 		},
 		{
 			"type": "shell",
+			"label": "build makefile",
+			"command": "cd ${fileDirname}; make",
+			"group": "build",
+			"problemMatcher": "$gcc"
+		},
+		{
+			"type": "shell",
 			"label": "C/C++: gcc-7 build active file",
 			"command": "/usr/bin/gcc",
 			"args": [
