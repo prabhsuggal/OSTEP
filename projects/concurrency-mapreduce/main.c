@@ -40,7 +40,7 @@ void Reduce(char *key, Getter get_next, int partition_number) {
 int main(int argc, char *argv[]) {
     double stime,etime;
     stime = GetTime();
-    MR_Run(argc, argv, Map, 1, Reduce, 1, MR_DefaultHashPartition);
+    MR_Run(argc, argv, Map, 10, Reduce, 10, MR_DefaultHashPartition);
     etime = GetTime();
     fprintf(stderr, "Time taken is %f sec\n", etime-stime);
 }
