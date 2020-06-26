@@ -5,6 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "lldb",
+            "request": "launch",
+            "name": "(lldb) Launch",
+            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "args": [],
+            "cwd": "${fileDirname}",
+            "stopOnEntry": true,
+            "preLaunchTask": "build makefile"
+        },
+        {
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
@@ -67,7 +77,7 @@
             ],
             "stopAtEntry": true,
             "logging": {
-                "engineLogging": true 
+                "engineLogging": true
             },
             "cwd": "${workspaceFolder}",
             "environment": [],

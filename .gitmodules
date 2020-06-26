@@ -1,0 +1,6 @@
+[submodule "projects/webcrawler"]
+	path = projects/webcrawler
+	url = git@github.com:ben-muldrow/webcrawler.git
+[submodule "ostep-code"]
+	path = ostep-code
+	url = git@github.com:remzi-arpacidusseau/ostep-code.git
