@@ -3,11 +3,23 @@
 
 // client code
 int main(int argc, char *argv[]) {
-    //for(int i =0;i < atoi(argv[1]);i++)
-    //    fork();
 
     int sd = Channel_Init(20000);
-    int rc = Connect_to("localhost", 10000);
+    int rc;
+    if(argc == 1){
+        rc = Connect_to("localhost", 10000);
+    }
+    else if(argc == 2){
+        rc = Connect_to(argv[1], 10000);
+    }
+    else if(argc == 3){
+        rc = Connect_to(argv[1], atoi(argv[2]));
+    }
+    else{
+        perror("Fuck you Buoy!! what more do you want?\n");
+        exit(1);
+    }
+
 
     char message[BUFFER_SIZE] = "hello world";
 

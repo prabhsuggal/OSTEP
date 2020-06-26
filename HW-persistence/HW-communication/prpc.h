@@ -29,8 +29,7 @@ int psend(int send_skt, char* msg){
     while(1){
         rc = UDP_Write(send_skt, &addrSnd, msg, BUFFER_SIZE);
         if(rc < 0){
-            perror("failed to send, retrying\n");
-            continue;
+            break;
         }
         tv.tv_sec = 5;
         tv.tv_usec = 0;
