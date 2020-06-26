@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
     int sd = Channel_Init(10000);
     assert(sd > -1);
     while (1) {
-	char message[BUFFER_SIZE];
+	char* message = NULL;
 	printf("server:: waiting...\n");
 	int rc = preceive(sd, message);
 	printf("server:: read message [size:%d contents:(%s)]\n", rc, message);
