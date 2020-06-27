@@ -7,8 +7,8 @@ int main(int argc, char *argv[]) {
     assert(sd > -1);
     while (1) {
 	char* message = NULL;
-	printf("server:: waiting...\n");
-	int rc = preceive(sd, message);
+	printf("server:: waiting... skt_fd %d\n", sd);
+    int rc = preceive(sd, &message);
 	printf("server:: read message [size:%d contents:(%s)]\n", rc, message);
 	if (rc > 0) {
             char reply[BUFFER_SIZE];

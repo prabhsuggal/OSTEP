@@ -18,9 +18,9 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/main",
+            "program": "${fileDirname}/server",
             "args": [
-                "test"
+                
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

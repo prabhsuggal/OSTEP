@@ -1,10 +1,10 @@
 #include "udp.h"
 
-#define BUFFER_SIZE (65507)
+#define BUFFER_SIZE (655)
 
 void* Malloc(size_t size){
     void *ptr = malloc(size);
-    assert(ptr == 0);
+    assert(ptr != NULL);
     return ptr;
 }
 
@@ -18,29 +18,34 @@ int Connect_to(char *server, int server_port){
     return UDP_FillSockAddr(&addrSnd, server, server_port);
 }
 
-int preceive(int listen_skt,  char* message){
+int preceive(int listen_skt,  char** message){
 	int rc;
-    char **msg_part = (char**)Malloc(sizeof(char*)*1000000);
+    char **msg_part = (char**)Malloc(sizeof(char*)*1000);
     int part = 0;
+    msg_part[part] = (char*)Malloc(sizeof(char)*BUFFER_SIZE);
     while(1){
-        msg_part[part] = (char*)Malloc(sizeof(char)*BUFFER_SIZE);
         rc = UDP_Read(listen_skt, &addrRecv, msg_part[part], BUFFER_SIZE);
+        printf("Msg Read : %s\n", msg_part[part]);
         char ack[BUFFER_SIZE] = "Message Received";
-        UDP_Write(listen_skt, &addrSnd, ack, BUFFER_SIZE);
+        rc = UDP_Write(listen_skt, &addrRecv, ack, BUFFER_SIZE);
         if(strcmp(msg_part[part],"prabhsimranshotshotmundakhunda") == 0){
             addrSnd = addrRecv;
             break;
         }
+        if(part > 0 && strcmp(msg_part[part], msg_part[part-1]) == 0){
+            continue;
+        }
         part++;
+        msg_part[part] = (char*)Malloc(sizeof(char)*BUFFER_SIZE);
     }
 
-    int tot_length = BUFFER_SIZE*((part - 2) > 0 ? (part-2) : 0) + strlen(msg_part[part - 1]);
-    message = (char*)Malloc(sizeof(char)*tot_length);
+    int tot_length = BUFFER_SIZE*((part - 2) > 0 ? (part-2) : 0) + strlen(msg_part[part - 1]) + 1;
+    *message = (char*)Malloc(sizeof(char)*tot_length);
     for(int i=0; i< part - 1; i++){
-        memcpy(message+i*BUFFER_SIZE, msg_part[i], BUFFER_SIZE);
+        memcpy(*message+i*BUFFER_SIZE, msg_part[i], BUFFER_SIZE);
         free(msg_part[i]);
     }
-    memcpy(message+(part -1)*BUFFER_SIZE, msg_part[part-1], strlen(msg_part[part-1]));
+    memcpy(*message+(part -1)*BUFFER_SIZE, msg_part[part-1], strlen(msg_part[part-1])+1);
 
     return rc;
 }
@@ -50,7 +55,7 @@ int psend(int send_skt, char* msg){
     fd_set rfds;
     struct timeval tv;
     char message[BUFFER_SIZE];
-    int length = strlen(msg), part = 0, part_len;
+    int length = strlen(msg)+1, part = 0, part_len;
 
     while(BUFFER_SIZE*part < length){
         if(length - BUFFER_SIZE*part < BUFFER_SIZE){
@@ -61,11 +66,12 @@ int psend(int send_skt, char* msg){
         }
         while(1){
             rc = UDP_Write(send_skt, &addrSnd, msg+part*BUFFER_SIZE, part_len);
+            printf("Msg Sent : %s\n", msg);
             if(rc < 0){
                 perror("failed to send, retrying\n");
                 continue;
             }
-            tv.tv_sec = 5;
+            tv.tv_sec = 500;
             tv.tv_usec = 0;
 
             FD_ZERO(&rfds);
@@ -88,6 +94,7 @@ int psend(int send_skt, char* msg){
     }
     while(1){
         rc = UDP_Write(send_skt, &addrSnd, "prabhsimranshotshotmundakhunda", BUFFER_SIZE);
+            printf("Msg Sent : prabhsimranshotshotmundakhunda\n");
         if(rc < 0){
             break;
         }
