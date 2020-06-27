@@ -62,18 +62,20 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-
-    printf("client:: send message [%s] with socket_fd %d res %d\n", message, sd, rc);
+    while(1){
+    //printf("client:: send message [%s]\n", message);
     rc = psend(sd, message);
     if (rc < 0) {
 	printf("client:: failed to send\n");
 	exit(1);
     }
 
-    printf("client:: wait for reply...\n");
+    //printf("client:: wait for reply...\n");
     char* reply = NULL;
     rc = preceive(sd, &reply);
-    printf("client:: got reply [size:%d contents:(%s)\n", rc, reply);
+    //printf("client:: got reply [size:%d contents:(%s)\n", rc, reply);
+    free(reply);
+    }
     return 0;
 }
 

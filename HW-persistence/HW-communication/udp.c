@@ -48,13 +48,13 @@ int UDP_FillSockAddr(struct sockaddr_in *addr, char *hostname, int port) {
     return 0;
 }
 
-int UDP_Write(int fd, struct sockaddr_in *addr, char *buffer, int n) {
+int UDP_Write(int fd, struct sockaddr_in *addr, void *buffer, int n) {
     int addr_len = sizeof(struct sockaddr_in);
     int rc = sendto(fd, buffer, n, 0, (struct sockaddr *) addr, addr_len);
     return rc;
 }
 
-int UDP_Read(int fd, struct sockaddr_in *addr, char *buffer, int n) {
+int UDP_Read(int fd, struct sockaddr_in *addr, void *buffer, int n) {
     int len = sizeof(struct sockaddr_in); 
     int rc = recvfrom(fd, buffer, n, 0, (struct sockaddr *) addr, (socklen_t *) &len);
     // assert(len == sizeof(struct sockaddr_in)); 
