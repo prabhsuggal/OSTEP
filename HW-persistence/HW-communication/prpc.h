@@ -1,6 +1,11 @@
 #include "udp.h"
 
-#define BUFFER_SIZE (60000)
+#define BUFFER_SIZE (500)
+
+/**
+ * strcut which helps in maintaining packets index
+ * thus easily assimilating them.
+ */
 typedef struct pieces_{
     char msg[BUFFER_SIZE];
     int idx;
@@ -18,19 +23,47 @@ void* Calloc(size_t size, size_t num){
     return ptr;
 }
 
+/**
+ * I have kept these as my own end_msg
+ * signals which help in letting receiver know that this is the
+ * last pkt
+ */
 char end_msg[] = "prabhsimranshotshotmundakhunda";
 int end_msg_len = strlen("prabhsimranshotshotmundakhunda");
 
 struct sockaddr_in addrSnd, addrRecv;
 
+/**
+ * creating and binding the socket with the port
+ */
 int Channel_Init(int port_num){
     return UDP_Open(port_num);
 }
 
+/**
+ * filling add struct in case of a client to connect
+ * to a server
+ */
 int Connect_to(char *server, int server_port){
     return UDP_FillSockAddr(&addrSnd, server, server_port);
 }
 
+/**
+ * my custom receive function which takes two arguments
+ * 1. listen_skt : fd to read in a given fd
+ * 2. message: ptr to str the value of the message
+ *
+ * Process is as follows:
+ * 1. we keep an array of ptrs to be able to read different buffer
+ *  parts into it.
+ * 2. one buffer is filled for a given idx, we reject a duplicate packet coming for the same idx.
+ * 3. End of the packet is know when end_msg is received.
+ * 4. Ack is only sent once. only when we know that all packet parts have been received
+ * 5. afterwards we join all the parts and send them to the caller.
+ *
+ * One other idea to prevent timeout is to send ack for small group of parts thus preventing
+ * timeouts for the whole packets when only part is missing.
+ */
 int preceive(int listen_skt,  char** message){
 	int rc;
     char **msg_part = (char**)Calloc(sizeof(char*), 1000000);
@@ -38,7 +71,7 @@ int preceive(int listen_skt,  char** message){
     pieces_t tmp;
     while(1){
         rc = UDP_Read(listen_skt, &addrRecv, &tmp, sizeof(tmp));
-        printf("Msg Read, part No. %d tot_parts %d\n", tmp.idx, tot_parts);
+        //printf("Msg Read, part No. %d tot_parts %d\n", tmp.idx, tot_parts);
         if(msg_part[tmp.idx] != NULL){
             continue;
         }
@@ -70,6 +103,22 @@ int preceive(int listen_skt,  char** message){
     return rc;
 }
 
+/**
+ * custom function for sending pkts
+ * arguments:
+ * 1. send_skt: skt fd which is responsible for sending pkts
+ * 2. msg: msg needed to send. One thing is that this doesn't need to be char array. we can send
+ *  arbitrary array using this lib.
+ *
+ * process is as follows:
+ * 1. we keep sending packets of size BUFFER_SIZE.
+ * 2. At the end of transmission we wait for the ack from the receiver. If we don't get ack,
+ *  we'll retransmit the whole packet again.
+ * 3. here we have kept a timeout of 10 sec for our case.
+ *
+ * we can also keep track of ack after small group of parts are transmitted as it prevents from sending
+ * the whole packets if even one part is lost.
+ */
 int psend(int send_skt, char* msg){
     int rc;
     fd_set rfds;
@@ -78,7 +127,7 @@ int psend(int send_skt, char* msg){
     int length = strlen(msg)+1, part_len, part = 0;
     //int parts = ((length-1)/BUFFER_SIZE) + 1;
     pieces_t piece;
-    
+
     while(1){
         while(BUFFER_SIZE*part < length){
             if(length - BUFFER_SIZE*part < BUFFER_SIZE){
@@ -105,7 +154,7 @@ int psend(int send_skt, char* msg){
             perror("failed to send, retrying\n");
             break;
         }
-            
+
         tv.tv_sec = 10;
         tv.tv_usec = 0;
 
