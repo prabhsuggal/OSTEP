@@ -1,6 +1,6 @@
 #include "udp.h"
 
-#define BUFFER_SIZE (100)
+#define BUFFER_SIZE (65000)
 typedef struct pieces_{
     char msg[BUFFER_SIZE];
     int idx;
@@ -33,7 +33,7 @@ int Connect_to(char *server, int server_port){
 
 int preceive(int listen_skt,  char** message){
 	int rc;
-    char **msg_part = (char**)Calloc(sizeof(char*), 1000);
+    char **msg_part = (char**)Calloc(sizeof(char*), 1000000);
     int parts = 0, tot_parts = __INT_MAX__;
     pieces_t tmp;
     while(1){
