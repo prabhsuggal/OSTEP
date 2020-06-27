@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     }
 
     while(1){
-    //printf("client:: send message [%s]\n", message);
+    printf("client:: send message\n");
     rc = psend(sd, message);
     if (rc < 0) {
 	printf("client:: failed to send\n");
@@ -71,10 +71,10 @@ int main(int argc, char *argv[]) {
     }
 
     //printf("client:: wait for reply...\n");
-    char* reply = NULL;
-    rc = preceive(sd, &reply);
+    //char* reply = NULL;
+    //rc = preceive(sd, &reply);
     //printf("client:: got reply [size:%d contents:(%s)\n", rc, reply);
-    free(reply);
+    //free(reply);
     }
     return 0;
 }

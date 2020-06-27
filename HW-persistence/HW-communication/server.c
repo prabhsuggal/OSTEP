@@ -9,13 +9,14 @@ int main(int argc, char *argv[]) {
 	char* message = NULL;
 	printf("server:: waiting... skt_fd %d\n", sd);
     int rc = preceive(sd, &message);
-	//printf("server:: read message [size:%d contents:(%s)]\n", rc, message);
-	if (rc > 0) {
-            char reply[BUFFER_SIZE];
-            sprintf(reply, "goodbye world");
-            rc = psend(sd,reply);
+	printf("server:: read message [ret:%d ]\n", rc);
+	//if (rc > 0) {
+            //char reply[BUFFER_SIZE];
+            //sprintf(reply, "goodbye world");
+            //rc = psend(sd,reply);
 	    //printf("server:: reply\n");
-	}
+	//}
+    free(message);
     }
     return 0;
 }

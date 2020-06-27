@@ -1,6 +1,6 @@
 #include "udp.h"
 
-#define BUFFER_SIZE (65000)
+#define BUFFER_SIZE (60000)
 typedef struct pieces_{
     char msg[BUFFER_SIZE];
     int idx;
@@ -38,7 +38,7 @@ int preceive(int listen_skt,  char** message){
     pieces_t tmp;
     while(1){
         rc = UDP_Read(listen_skt, &addrRecv, &tmp, sizeof(tmp));
-        // printf("Msg Read : %s\n", tmp.msg);
+        printf("Msg Read, part No. %d tot_parts %d\n", tmp.idx, tot_parts);
         if(msg_part[tmp.idx] != NULL){
             continue;
         }
@@ -52,7 +52,7 @@ int preceive(int listen_skt,  char** message){
         if(parts == tot_parts){
             char ack[BUFFER_SIZE] = "Message Received";
             rc = UDP_Write(listen_skt, &addrRecv, ack, BUFFER_SIZE);
-            // printf("Ack Sent: %s res %d", ack, rc);
+            printf("Ack Sent: %s res %d\n", ack, rc);
             break;
         }
     }
@@ -106,7 +106,7 @@ int psend(int send_skt, char* msg){
             break;
         }
             
-        tv.tv_sec = 500;
+        tv.tv_sec = 10;
         tv.tv_usec = 0;
 
         FD_ZERO(&rfds);
@@ -118,10 +118,11 @@ int psend(int send_skt, char* msg){
         }
         if(rc == 0){
             printf("Timeout!!!!!, will retry\n");
+            part = 0;
             continue;
         }
         rc = UDP_Read(send_skt, &addrRecv, message, BUFFER_SIZE);
-        // printf("Ack Received: size: %d, message: %s\n", rc, message);
+        printf("Ack Received: size: %d, message: %s\n", rc, message);
         break;
     }
 
