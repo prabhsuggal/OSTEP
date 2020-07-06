@@ -4,3 +4,9 @@
 [submodule "ostep-code"]
 	path = ostep-code
 	url = git@github.com:remzi-arpacidusseau/ostep-code.git
+[submodule "ostep-homework"]
+	path = ostep-homework
+	url = git@github.com:remzi-arpacidusseau/ostep-homework.git
+[submodule "projects/initial-xv6/src"]
+	path = projects/initial-xv6/src
+	url = https://github.com/mit-pdos/xv6-public
