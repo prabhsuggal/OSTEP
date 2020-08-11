@@ -12,4 +12,4 @@
 	url = https://github.com/mit-pdos/xv6-public
 [submodule "xv6-public"]
 	path = xv6-public
-	url = https://github.com/mit-pdos/xv6-public
+	url = git://github.com/mit-pdos/xv6-public.git
