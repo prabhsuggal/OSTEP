@@ -10,3 +10,6 @@
 [submodule "projects/initial-xv6/src"]
 	path = projects/initial-xv6/src
 	url = https://github.com/mit-pdos/xv6-public
+[submodule "xv6-public"]
+	path = xv6-public
+	url = https://github.com/mit-pdos/xv6-public

@@ -11,8 +11,11 @@
 		{
 			"type": "shell",
 			"label": "build makefile",
-			"command": "cd ${fileDirname}; make",
-			"group": "build",
+			"command": "cd ${fileDirname}; make qemu-nox-gdb",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
 			"problemMatcher": "$gcc"
 		},
 		{
@@ -34,10 +37,7 @@
 			"problemMatcher": [
 				"$gcc"
 			],
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
+			"group": "build"
 		}
 	]
 }
